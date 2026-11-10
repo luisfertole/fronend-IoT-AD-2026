@@ -1,4 +1,4 @@
-import { DIRECCIONES, BOTONES, PULSOS } from "./controlador.js";
+import { BOTONES, PULSOS } from "./controlador.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -23,13 +23,13 @@ export function setIndicador(cual, estado) {
   el.querySelector(".txt").textContent = txt;
 }
 
-export function crearJoystick(ctl) {
-  const joy = $("joy"), knob = $("knob");
+export function crearJoystick(ctl, joyId, knobId, mapa) {
+  const joy = $(joyId), knob = $(knobId);
   let activo = false, dir = null;
   const cambiar = (nueva) => {
     if (nueva === dir) return;
     dir = nueva;
-    if (dir) ctl.iniciar(DIRECCIONES[dir]); else ctl.detener();   // un envío por cambio de dirección
+    if (dir) ctl.iniciar(mapa[dir]); else ctl.detener();   // un envío por cambio de dirección
   };
   const calc = (e) => {
     const r = joy.getBoundingClientRect(), max = (r.width / 2) * 0.65;

@@ -3,7 +3,8 @@ import { MOVE_MS } from "./config.js";
 
 // Direcciones del joystick -> nombres del catálogo real (GET /vehiculos/1/comandos).
 export const DIRECCIONES = { arriba: "AVANZAR", abajo: "RETROCEDER", izquierda: "IZQUIERDA", derecha: "DERECHA" };
-export const BOTONES = ["GIRAR_IZQUIERDA", "GIRAR_DERECHA", "LEVANTAR", "BAJAR", "ENCENDER_APAGAR", "SONIDO", "LUCES"];
+export const DIRECCIONES2 = { arriba: "LEVANTAR", abajo: "BAJAR", izquierda: "GIRAR_IZQUIERDA", derecha: "GIRAR_DERECHA" };
+export const BOTONES = ["ENCENDER_APAGAR", "SONIDO", "LUCES"];
 export const PULSOS = new Set(["ENCENDER_APAGAR", "SONIDO", "LUCES"]);   // el firmware fija su duración
 
 export class Controlador {

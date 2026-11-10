@@ -1,6 +1,7 @@
 import { api, setClave } from "./api.js";
 import { conectarWs } from "./ws.js";
-import { Controlador } from "./controlador.js";
+import { Controlador, DIRECCIONES, DIRECCIONES2 } from "./controlador.js";
+import { montarMenu } from "./nav.js";
 import { HEALTH_PATH, HEALTH_EVERY_MS, RDS_DIAG_PATH, VEHICLE_ID } from "./config.js";
 import { mostrarMensaje, setIndicador, crearJoystick, crearBotones, cargarDemos, bloquearDemo } from "./ui.js";
 
@@ -21,7 +22,7 @@ async function iniciar() {
   try {
     const v = await api.vehiculo();
     $("veh").textContent = v.nombre || v.vehiculo || `Vehículo ${VEHICLE_ID}`;
-    await ctl.cargar(); crearJoystick(ctl); crearBotones(ctl);
+    await ctl.cargar(); crearJoystick(ctl, "joy", "knob", DIRECCIONES); crearJoystick(ctl, "joy2", "knob2", DIRECCIONES2); crearBotones(ctl);
     cargarDemos(await api.demos());
   } catch (e) { mostrarMensaje("error", e.message); }
 }
@@ -32,4 +33,5 @@ $("demo-run").onclick = () => ctl.iniciarDemo($("demo").value);
 $("demo-cancel").onclick = () => ctl.cancelarDemo();
 addEventListener("blur", () => ctl.activo && ctl.detener());
 document.addEventListener("visibilitychange", () => document.hidden && ctl.activo && ctl.detener());
+montarMenu();
 iniciar();
