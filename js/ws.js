@@ -9,7 +9,7 @@ export function conectarWs({ onEstado, onEvento }, id = VEHICLE_ID) {
     clearTimeout(timer);
     if (cerrado) return;
     onEstado(intentos ? "reconectando" : "conectando");
-    ws = new WebSocket(`${WS_BASE}/ws/vehiculos/${id}`);
+    ws = new WebSocket(`ws://iot-vehiculos.duckdns.org/ws/vehiculos/1`);
     ws.onopen = () => { intentos = 0; onEstado("en_linea"); };
     ws.onmessage = (e) => { try { onEvento(JSON.parse(e.data)); } catch { /* mensaje no válido */ } };
     ws.onclose = () => {
