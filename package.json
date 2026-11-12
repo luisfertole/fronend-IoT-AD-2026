@@ -1,0 +1,12 @@
+{
+  "name": "unidad-02-control-iot",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env.local scripts/dev-server.mjs",
+    "preview": "node scripts/dev-server.mjs --mock",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": { "node": ">=22" }
+}

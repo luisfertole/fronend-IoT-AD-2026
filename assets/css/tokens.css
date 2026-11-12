@@ -1,0 +1,17 @@
+:root {
+  color-scheme:dark;
+  --bg:#0b0e12;
+  --surface:#12171d;
+  --surface-raised:#192029;
+  --line:#2b343f;
+  --line-soft:#202832;
+  --text:#f0f3f6;
+  --muted:#a6b0bd;
+  --accent:#ffae52;
+  --accent-dim:#382a1d;
+  --danger:#ff746a;
+  --success:#b4e5c9;
+  --radius:14px;
+  --font:Bahnschrift,"Segoe UI",sans-serif;
+  --mono:Consolas,"Courier New",monospace
+}

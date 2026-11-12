@@ -1,4 +1,4 @@
-import { WS_BASE, VEHICLE_ID } from "./config.js";
+import { WS_BASE, VEHICLE_ID } from "../config/app.js";
 
 const MAX_INTENTOS = 5;   // evita llenar la consola si una extensión o la red bloquean el WSS
 

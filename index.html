@@ -1,51 +1,13 @@
 <!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b0909">
-<title>Unidad 02 · Control IoT</title>
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="css/estilos.css" rel="stylesheet">
-</head>
-<body>
-<div class="app">
-  <header class="top">
-    <div class="titulo">
-      <h1>Unidad <b>02</b></h1>
-      <span id="veh">Vehículo IoT</span>
-    </div>
-    <div class="llave">
-      <label for="clave" class="visually-hidden">Clave de la API (solo en memoria)</label>
-      <input id="clave" type="password" autocomplete="off" placeholder="Clave API">
-      <button id="guardar" type="button">Usar</button>
-    </div>
-  </header>
-
-  <section class="inds" aria-label="Estado de conexiones">
-    <div class="ind" id="ind-ws"><span class="ico"></span><span><small>WebSocket WSS</small><strong class="txt"></strong></span></div>
-    <div class="ind" id="ind-api"><span class="ico"></span><span><small>AWS · API 21 servicios</small><strong class="txt"></strong></span></div>
-    <div class="ind" id="ind-db"><span class="ico"></span><span><small>Amazon RDS</small><strong class="txt"></strong></span></div>
-  </section>
-
-  <main class="controls">
-    <div class="joywrap"><div id="joy" tabindex="0" role="application" aria-label="Joystick de desplazamiento: avanzar, retroceder, izquierda, derecha"><div id="knob"></div></div></div>
-    <div id="botones" aria-label="Funciones centrales"></div>
-    <div class="joywrap"><div id="joy2" tabindex="0" role="application" aria-label="Joystick auxiliar: levantar, bajar, girar izquierda, girar derecha"><div id="knob2"></div></div></div>
-    <button id="detener" type="button">DETENER</button>
-  </main>
-
-  <section class="demo" aria-label="Demostraciones">
-    <label for="demo" class="visually-hidden">Selecciona una demostración</label>
-    <select id="demo"></select>
-    <button id="demo-run" type="button" class="b-ok">Ejecutar</button>
-    <button id="demo-cancel" type="button" class="b-no">Cancelar</button>
-  </section>
-
-  <div id="mensaje" role="status" aria-live="polite">Listo.</div>
-  <footer>Desarrollado por Luis Fernando Tolentino Segovia · 2026</footer>
-</div>
-<script type="module" src="js/main.js"></script>
-</body>
-</html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0b0e12"><meta name="description" content="Consola de control, telemetría y administración del vehículo IoT Unidad 02."><title>Control del vehículo · Unidad 02</title><link rel="icon" href="favicon.svg"><link rel="stylesheet" href="assets/css/app.css"></head>
+<body class="control-page"><a class="skip-link" href="#main">Ir al contenido</a><div class="shell">
+<aside class="sidebar"><a class="brand" href="index.html" aria-label="Unidad 02, inicio"><span class="brand-mark">U<span>02</span></span><span>UNIDAD <b>02</b><small>VEHICLE OPERATIONS</small></span></a><p class="nav-caption">ESPACIO DE TRABAJO</p><nav id="navigation" aria-label="Navegación principal"></nav><div class="sidebar-bottom"><span class="orbit-dot"></span> SISTEMA IoT <small>Desarrollado por<br>Luis Fernando Tolentino Segovia<br>2026</small></div></aside>
+<div class="workspace"><header class="topbar"><span class="breadcrumb">UNIDAD 02 <span>/</span> Control del vehículo</span><span class="top-tag">REMOTE OPERATIONS <i></i></span></header><main id="main"><div class="page-heading"><div><p class="eyebrow">CENTRO DE OPERACIONES / 01</p><h1>Control del vehículo<span>.</span></h1><p class="subtitle">Precisión en cada movimiento. Todas las funciones, en una sola consola.</p></div><span class="version-tag">U02 <span>CONSOLE / V2.0</span></span></div>
+<section class="connection-grid" aria-label="Estado de conexiones"><div class="connection" id="ind-ws" data-state="pending"><span class="signal-dot"></span><div><small>WEBSOCKET / WSS</small><strong>Conectando</strong></div><span class="connection-symbol">↗</span></div><div class="connection" id="ind-api" data-state="pending"><span class="signal-dot"></span><div><small>SERVIDOR / API</small><strong>Comprobando</strong></div><span class="connection-symbol">⌁</span></div><div class="connection" id="ind-db" data-state="pending"><span class="signal-dot"></span><div><small>BASE DE DATOS / RDS</small><strong>Sin verificar</strong></div><span class="connection-symbol">▤</span></div></section>
+<section class="vehicle-strip"><div class="vehicle-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 15h12l3-6h3v9h-4M4 11h8l2 4M5 11V7h6l2 4"/><circle cx="6" cy="18" r="2"/><circle cx="13" cy="18" r="2"/></svg></div><div><small>VEHÍCULO SELECCIONADO</small><h2 id="veh">Unidad remota</h2></div><span id="vehicle-model" class="device-tag">Conectando con el servidor</span><button class="icon-button" id="reload" type="button" aria-label="Recargar vehículo y catálogo" title="Recargar datos">↻</button></section>
+<div class="control-grid"><section class="panel joystick-panel" aria-labelledby="joy-title"><header class="panel-heading"><div><span class="panel-number">01</span><h2 id="joy-title">Desplazamiento</h2></div><span class="tiny-label">TRACCIÓN</span></header><div class="joystick-content"><div class="joystick-stage"><div id="joy" class="joystick" tabindex="0" role="group" aria-label="Joystick Desplazamiento. Usa las flechas del teclado; suelta para detener."><span class="axis vertical"></span><span class="axis horizontal"></span><button type="button" class="joy-direction joy-arriba" data-joystick="joy" data-direction="arriba"><span class="joy-direction-icon" aria-hidden="true">↑</span><span class="joy-label">Adelante</span></button><button type="button" class="joy-direction joy-abajo" data-joystick="joy" data-direction="abajo"><span class="joy-direction-icon" aria-hidden="true">↓</span><span class="joy-label">Retroceder</span></button><button type="button" class="joy-direction joy-izquierda" data-joystick="joy" data-direction="izquierda"><span class="joy-direction-icon" aria-hidden="true">←</span><span class="joy-label">Mover a la izquierda</span></button><button type="button" class="joy-direction joy-derecha" data-joystick="joy" data-direction="derecha"><span class="joy-direction-icon" aria-hidden="true">→</span><span class="joy-label">Mover a la derecha</span></button><div class="joystick-knob"><span></span></div></div><span class="joystick-status" id="joy-status">EN REPOSO</span></div></div><div class="panel-foot"><span class="mini-dot"></span> Mantén para mover · suelta para detener</div></section>
+<section class="panel functions-panel" aria-labelledby="functions-title"><header class="panel-heading"><h2 id="functions-title">Funciones</h2><span class="tiny-label">AUX</span></header><div class="function-buttons"><button type="button" id="power" class="function-button" aria-pressed="false" disabled><span class="function-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v8m-5-6a9 9 0 1 0 10 0"/></svg></span><span class="function-copy"><span class="function-title">Encender / apagar</span><span class="function-status">Apagado</span></span><span class="function-led"></span></button><button type="button" id="sound" class="function-button" aria-pressed="false" disabled><span class="function-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m11 5-6 4H2v6h3l6 4zM15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg></span><span class="function-copy"><span class="function-title">Sonido</span><span class="function-status">Sonido desactivado</span></span><span class="function-led"></span></button><button type="button" id="lights" class="function-button" aria-pressed="false" disabled><span class="function-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 15a6 6 0 1 1 8 0l-1 3H9zM9 21h6M12 1v1M2 11h1m18 0h1M4 3l2 2m12 0 2-2"/></svg></span><span class="function-copy"><span class="function-title">Luces</span><span class="function-status">Luces desactivadas</span></span><span class="function-led"></span></button></div><p class="functions-note">Estado de sesión según órdenes aceptadas por la API.</p></section>
+<section class="panel joystick-panel" aria-labelledby="joy2-title"><header class="panel-heading"><div><span class="panel-number">02</span><h2 id="joy2-title">Pala y rotación</h2></div><span class="tiny-label">ARTICULACIÓN</span></header><div class="joystick-content"><div class="joystick-stage"><div id="joy2" class="joystick" tabindex="0" role="group" aria-label="Joystick Pala y rotación. Usa las flechas del teclado; suelta para detener."><span class="axis vertical"></span><span class="axis horizontal"></span><button type="button" class="joy-direction joy-arriba" data-joystick="joy2" data-direction="arriba"><span class="joy-direction-icon" aria-hidden="true">↑</span><span class="joy-label">Levantar pala</span></button><button type="button" class="joy-direction joy-abajo" data-joystick="joy2" data-direction="abajo"><span class="joy-direction-icon" aria-hidden="true">↓</span><span class="joy-label">Bajar pala</span></button><button type="button" class="joy-direction joy-izquierda" data-joystick="joy2" data-direction="izquierda"><span class="joy-direction-icon" aria-hidden="true">←</span><span class="joy-label">Rotar a la izquierda</span></button><button type="button" class="joy-direction joy-derecha" data-joystick="joy2" data-direction="derecha"><span class="joy-direction-icon" aria-hidden="true">→</span><span class="joy-label">Rotar a la derecha</span></button><div class="joystick-knob"><span></span></div></div><span class="joystick-status" id="joy2-status">EN REPOSO</span></div></div><div class="panel-foot"><span class="mini-dot"></span> Mantén para mover · suelta para detener</div></section></div>
+<button id="detener" class="emergency" type="button"><span class="stop-icon">■</span><span>DETENER <small>PARADA DE MOVIMIENTO / CANCELAR DEMO</small></span><span class="stop-arrow">↗</span></button>
+<section class="panel demo-panel"><div><p class="eyebrow" id="demo-state">SECUENCIA AUTOMÁTICA</p><h2>Demostraciones</h2></div><div class="demo-actions"><label class="sr-only" for="demo">Demostración</label><select id="demo"><option value="">Selecciona una demostración</option></select><button id="demo-run" class="primary-button" type="button" disabled>▶ Ejecutar</button><button id="demo-cancel" class="secondary-button" type="button" disabled>Cancelar</button></div></section>
+<section class="activity"><div class="section-label"><h2>Actividad de la sesión</h2><span>LIVE LOG</span></div><ul id="mensaje" role="log" aria-live="polite" aria-relevant="additions"><li>Consola lista. Cargando conexión y catálogo de comandos.</li></ul></section><p class="access-note" id="access-note">Conexión automática · sin captura de API key en Control.</p><p class="fine-print">WSS confirma la conexión con el servidor. La confirmación física de motores, luces y sonido requiere telemetría del dispositivo.</p></main><footer>UNIDAD 02 <span>CONTROL · TELEMETRÍA · CONEXIÓN</span></footer></div></div><script type="module" src="src/features/control/page.js"></script></body></html>
