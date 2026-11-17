@@ -222,3 +222,11 @@ Módulos nuevos: `src/features/voice/{panel,executor,contract,microphone}.js`, `
 Referencias oficiales: [Transcripción de audio](https://developers.openai.com/api/docs/guides/speech-to-text), [Function calling](https://developers.openai.com/api/docs/guides/function-calling).
 
 Pruebas locales sin servicios reales: `npm test` y `npm run preview`. La vista de prueba simula ESP y la interpretación con reglas fijas, no usa OpenAI. Abre `index.html?esp=off` para simular una tarjeta desconectada.
+
+## Control móvil por giroscopio
+
+En móviles y tabletas, Control muestra **Activar giroscopio**. Requiere HTTPS (o localhost), sensor de orientación, permisos de movimiento si el navegador los solicita y ESP conectada. Sostén el dispositivo en una postura cómoda al activarlo: la primera lectura define el centro. Inclina hacia delante para avanzar, hacia atrás para retroceder y hacia los lados para desplazamiento lateral. Al volver al centro se envía DETENER. La pala y la rotación conservan el joystick derecho.
+
+**Desactivar giroscopio**, DETENER, un control manual, Voz IA, girar la pantalla, salir de la página, perder conexión o dejar de recibir lecturas desactiva este modo. No se reactiva automáticamente. La zona neutra y la histéresis evitan cambios por pequeñas vibraciones. Cada inclinación mantiene una sola orden de hasta cinco segundos; después hay que volver al centro para continuar. No se guardan permisos ni lecturas en el servidor.
+
+Módulos: `src/features/control/gyroscope.js` (permisos y botón), `src/features/control/tilt-control.js` (calibración y control). Pruebas: `tests/gyroscope.test.mjs`.
