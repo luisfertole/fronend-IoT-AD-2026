@@ -342,3 +342,5 @@ footer {
 }
 
 .developer-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.developer-links a{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid #354250;border-radius:6px;color:#c6d1df;font-size:10px;text-decoration:none}.developer-links a:hover{color:#ffb454;border-color:#ffb454;background:#ffb4540d}.developer-links a:focus-visible{outline:2px solid #ffb454;outline-offset:3px}
+
+.control-profile-links{display:none}.profile-short{display:none}@media(max-width:760px){.control-page .sidebar{position:relative}.control-profile-links{display:flex;position:absolute;top:10px;right:12px;margin:0;gap:5px}.control-profile-links a{font-size:9px;padding:5px 7px}}@media(orientation:landscape) and (max-height:520px){.control-page .sidebar{gap:8px}.control-profile-links{display:flex;position:static;margin:0;gap:4px}.control-profile-links a{font-size:9px;padding:4px 6px}.control-profile-links .profile-full{display:none}.control-profile-links .profile-short{display:inline}}
