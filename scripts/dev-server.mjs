@@ -4,6 +4,7 @@ import { dirname, resolve, extname, relative, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { controlGateway } from '../server/control-gateway.mjs';
 import { backendGateway } from '../server/backend-gateway.mjs';
+import { voiceGateway } from '../server/voice-gateway.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const mock = process.argv.includes('--mock');
@@ -13,15 +14,16 @@ const allowed = path => ['index.html','monitoreo.html','admin.html','favicon.svg
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   res.setHeader('Cache-Control', 'no-store');
-  if (url.pathname === '/api/control' || url.pathname === '/api/backend') {
+  if (url.pathname === '/api/control' || url.pathname === '/api/backend' || url.pathname === '/api/voice') {
     const chunks = []; let length = 0;
-    for await (const chunk of req) { length += chunk.length; if (length > 8192) { res.writeHead(413).end(); return; } chunks.push(chunk); }
+    for await (const chunk of req) { length += chunk.length; if (length > (url.pathname === '/api/voice' ? 1100000 : 8192)) { res.writeHead(413).end(); return; } chunks.push(chunk); }
     req.body = Buffer.concat(chunks).toString();
     req.query = { path: url.searchParams.get('path') };
     res.status = code => { res.statusCode = code; return res; };
     res.json = data => { res.setHeader('Content-Type','application/json'); res.end(JSON.stringify(data)); };
     if (mock) { res.status(200).json(req.method === 'GET' ? { ready:true, mock:true, vehicle:1 } : {ok:true}); return; }
-    if (url.pathname === '/api/backend') await backendGateway(req, res);
+    if (url.pathname === '/api/voice') await voiceGateway(req,res);
+    else if (url.pathname === '/api/backend') await backendGateway(req, res);
     else await controlGateway(req, res);
     return;
   }

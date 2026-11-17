@@ -34,6 +34,6 @@ test('no filtra respuestas arbitrarias o claves del backend',async()=>{
   const {res}=await run({action:'detener'},{dependencies:{fetcher:async()=>({ok:false,status:500,json:async()=>({detail:env.IOT_API_KEY})})}});
   assert.equal(res.code,500);assert.equal(JSON.stringify(res.data).includes(env.IOT_API_KEY),false);
 });
-test('informa disponibilidad sin revelar la clave',async()=>{
-  const {res,calls}=await run(undefined,{req:{method:'GET'}});assert.equal(res.data.ready,true);assert.equal(calls.length,0);assert.equal(JSON.stringify(res.data).includes(env.IOT_API_KEY),false);
+test('informa disponibilidad y consulta la ESP sin revelar la clave',async()=>{
+  const {res,calls}=await run(undefined,{req:{method:'GET'}});assert.equal(res.data.ready,true);assert.equal(calls.length,1);assert.equal(calls[0].options.headers['X-API-Key'],undefined);assert.equal(res.data.esp_connected,null);assert.equal(JSON.stringify(res.data).includes(env.IOT_API_KEY),false);
 });

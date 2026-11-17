@@ -55,31 +55,41 @@ fronend-IoT-AD-2026/
 │   │   └── websocket.js        Eventos y reconexión WSS
 │   ├── shared/
 │   │   ├── dom.js              Utilidades para elementos y mensajes
-│   │   └── navigation.js       Navegación compartida
+│   │   ├── navigation.js       Navegación compartida
+│   │   └── device-status.js    Normalización del estado real de ESP
 │   ├── features/
 │   │   ├── control/
 │   │   │   ├── page.js         Arranque y conexión de Control
 │   │   │   ├── controller.js   Órdenes, cola y prioridad de DETENER
 │   │   │   ├── joystick.js     Entrada táctil, ratón y teclado
+│   │   │   ├── device.js       Diagnóstico ESP y eventos de conexión
 │   │   │   ├── commands.js     Mapeo de direcciones y funciones
 │   │   │   ├── function-state.js Persistencia y telemetría de botones
 │   │   │   └── ui.js           Indicadores, mensajes y estados visuales
+│   │   ├── voice/              Micrófono, planes y ejecución validada de voz
 │   │   ├── monitoring/page.js
 │   │   └── admin/page.js
 │   └── dev/mock.js             Simulación exclusiva de preview
 ├── api/
 │   ├── control.mjs             Función de control para Vercel
-│   └── backend.mjs             Función REST para Vercel
+│   ├── backend.mjs             Función REST para Vercel
+│   └── voice.mjs               Transcripción e interpretación OpenAI
 ├── server/
 │   ├── control-gateway.mjs     Control con la clave privada del servidor
-│   └── backend-gateway.mjs     Lecturas y administración con rutas limitadas
+│   ├── backend-gateway.mjs     Lecturas y administración con rutas limitadas
+│   ├── voice-catalog.mjs       Lectura de demos activas para la IA
+│   └── voice-gateway.mjs       Servicio privado OpenAI, sin órdenes directas
 ├── scripts/dev-server.mjs      Servidor local
 ├── tests/
 │   ├── controller.test.mjs     Cancelación, cola y respuestas tardías
 │   ├── reactivity.test.mjs     Dirección, duración y liberación del joystick
 │   ├── function-state.test.mjs Conservación de estados y telemetría
 │   ├── gateway.test.mjs        Validación del control y aislamiento de la clave
-│   └── backend-gateway.test.mjs Rutas REST y acceso administrativo
+│   ├── backend-gateway.test.mjs Rutas REST y acceso administrativo
+│   ├── device.test.mjs         Conexión ESP separada de ready
+│   ├── microphone.test.mjs     Grabaciones cortas, señal y silencio
+│   ├── voice-sequence.test.mjs Demos, planes ordenados y cancelación
+│   └── voice.test.mjs          Interpretación, límites y cancelación de voz
 ├── docs/
 │   ├── DESPLIEGUE.md           Configuración local y Vercel
 │   └── MEJORAS.md              Próximas etapas
@@ -163,6 +173,52 @@ Monitoreo descarta respuestas de vehículos anteriores, limita eventos a 100 y m
 npm test
 ```
 
-Las 38 pruebas actuales verifican cancelación, respuestas tardías, estados de botones, validación de acciones e aislamiento de secretos. No sustituyen una prueba del dispositivo físico.
+Las pruebas actuales verifican cancelación, respuestas tardías, estados de botones, validación de acciones e aislamiento de secretos. No sustituyen una prueba del dispositivo físico.
 
 Consulta [Configuración de la clave](docs/DESPLIEGUE.md) y [Mejoras propuestas](docs/MEJORAS.md). El despliegue y la conexión real requieren configurar la variable del servidor.
+
+## Conexión real de la tarjeta ESP
+
+El indicador **Tarjeta ESP** usa `GET /vehiculos/{id}/dispositivo` cada cinco segundos y los eventos WSS `DISPOSITIVO_CONECTADO`, `DISPOSITIVO_DESCONECTADO` y `ESTADO_DISPOSITIVO`. Muestra Conectada, Desconectada o Sin verificar. Una respuesta REST antigua no sobrescribe un evento WSS más reciente.
+
+`GET /api/control` ahora distingue configuración y dispositivo:
+
+```json
+{"ready":true,"vehicle":1,"esp_connected":true}
+```
+
+`ready` confirma que la clave de control está configurada; `esp_connected` refleja lo que informa EC2. Puede ser `false` o `null` si no fue posible comprobarlo. Ninguno confirma por sí solo el movimiento físico de los motores.
+
+## Control por voz con OpenAI
+
+El botón **Voz IA** abre un panel sin cambiar el tamaño de Control. Permite grabar hasta quince segundos o escribir una instrucción con hasta seis acciones: **enciende la placa**, **avanza un segundo y gira a la derecha otro segundo**, **ejecuta la demo seleccionada** o **alto**. El audio se envía a OpenAI cuando termina la grabación; el micrófono se libera al finalizar, cancelar, cerrar o cambiar de pestaña. Se necesita HTTPS o localhost y permiso del micrófono; el texto funciona sin micrófono.
+
+Selecciona la entrada en **Micrófono de entrada**, pulsa **Grabar voz** y habla cuando aparezca **Escuchando**. La barra muestra el nivel capturado y el reproductor permite escuchar la última grabación localmente. Las grabaciones sin señal o demasiado cortas se explican antes de enviarlas; al iniciar otra instrucción se limpia la transcripción anterior. La transcripción recibe una indicación explícita de español.
+
+Flujo: grabación → `/api/voice` → transcripción OpenAI → Responses API con una función estricta → validación local → el mismo controlador y `/api/control` que los joysticks. El modelo no recibe la clave IoT ni puede elegir URLs, rutas, identificadores o comandos fuera del catálogo. El servidor de voz interpreta; no envía movimientos directamente a EC2.
+
+Agrega en Vercel, dentro del mismo proyecto y entorno Production:
+
+| Variable | Valor |
+|---|---|
+| `OPENAI_API_KEY` | Clave privada de tu proyecto de OpenAI, independiente de IOT_API_KEY |
+| `OPENAI_TRANSCRIBE_MODEL` | `gpt-transcribe` (opcional; valor predeterminado) |
+| `OPENAI_INTENT_MODEL` | `gpt-4.1-mini` (opcional; valor predeterminado) |
+
+Realiza un nuevo despliegue. Para desarrollo agrega estas variables a tu `.env.local`, conservando las existentes. No subas claves a GitHub ni las pongas en el código del navegador. `GET /api/voice` informa si la clave de voz está configurada; no la muestra ni valida su cuota. El uso real requiere una cuenta API de OpenAI con acceso a los modelos y cuota disponible y puede generar cargos.
+
+La voz ejecuta hasta **seis acciones ordenadas por instrucción**. Cada movimiento admite 50–5000 ms; sin duración se solicitan 1000 ms. El controlador espera la duración restante de cada paso, confirma la parada y continúa con el siguiente; si EC2 ya esperó esa duración, no la espera otra vez. Una parada fallida, desconexión, acción manual, DETENER, cierre del panel o cambio de pestaña cancela los pasos pendientes. El panel muestra el progreso y marca los pasos cancelados. Los joysticks conservan su comportamiento de una sola orden por dirección.
+
+**Enciende la placa**, **apaga la tarjeta**, **enciende el ESP** y **apaga el vehículo** usan el mismo comando y botón `ENCENDER_APAGAR`. Sonido y luces también usan el estado solicitado, sin volver a alternar un botón que ya tenía ese estado. La interfaz refleja las órdenes aceptadas; el estado físico requiere telemetría.
+
+Las demos se identifican por nombre, `id_demo` o **la demo seleccionada** en la consola. Por ejemplo: **ejecuta la demo de maniobra**, **ejecuta la demo 1** y **cancela la demo**. El servidor consulta las demos activas de `IOT_VEHICLE_ID` y restringe la selección de la IA a esos identificadores. El navegador comprueba también su catálogo antes de ejecutar. Una demo puede ejecutarse sola o cerrar una secuencia; no se encadenan movimientos después de una demo porque su duración la controla el backend. Recarga la consola después de crear o eliminar demos. DETENER y cancelar la demo siguen disponibles sin exigir una ESP verificada.
+
+El botón rojo **DETENER AHORA** del panel llama al controlador inmediatamente. La palabra escrita alto evita consultar al modelo; una parada hablada requiere primero transcripción y no reemplaza al botón de emergencia.
+
+La función limita texto a 600 caracteres y audio a 768 KB; aplica un límite de 12 solicitudes/minuto por origen IP en cada instancia. Ese contador en memoria no constituye un límite global de facturación; configura límites de uso en tu proyecto OpenAI y autenticación de operadores antes de abrir el servicio a terceros. El panel mantiene el acceso público solicitado para Control.
+
+Módulos nuevos: `src/features/voice/{panel,executor,contract,microphone}.js`, `src/features/control/device.js`, `src/shared/device-status.js`, `api/voice.mjs`, `server/voice-gateway.mjs` y `server/voice-catalog.mjs`. Las pruebas de ESP, voz y señal del micrófono están en `tests/device.test.mjs`, `tests/voice.test.mjs`, `tests/voice-sequence.test.mjs` y `tests/microphone.test.mjs`.
+
+Referencias oficiales: [Transcripción de audio](https://developers.openai.com/api/docs/guides/speech-to-text), [Function calling](https://developers.openai.com/api/docs/guides/function-calling).
+
+Pruebas locales sin servicios reales: `npm test` y `npm run preview`. La vista de prueba simula ESP y la interpretación con reglas fijas, no usa OpenAI. Abre `index.html?esp=off` para simular una tarjeta desconectada.

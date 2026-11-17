@@ -1,3 +1,4 @@
+import { mockIntent } from './mock-voice.js';
 // Se inyecta SOLO con npm run preview. Nunca conecta con el servidor ni con el vehículo.
 const commands = ['ENCENDER_APAGAR','GIRAR_IZQUIERDA','RETROCEDER','AVANZAR','GIRAR_DERECHA','SONIDO','LUCES','LEVANTAR','IZQUIERDA','BAJAR','DERECHA'].map((nombre,index) => ({nombre,id_comando:index+1,codigo:index+1,activo:true}));
 let vehicles = [{id_vehiculo:1,nombre:'Vehículo IoT ESP8266',modelo:'Control 74HC595 + PC817',microcontrolador:'ESP8266'}];
@@ -14,9 +15,11 @@ window.WebSocket = MockSocket;
 window.fetch = async (input, options = {}) => {
   const url = new URL(input, location.origin), path = url.pathname === '/api/backend' ? url.searchParams.get('path') : url.pathname, method = options.method || 'GET';
   let data;
-  if (path === '/api/control') {
+  if(path==='/api/voice'){ data=method==='GET'?{ready:true,mock:true}:{transcript:JSON.parse(options.body||'{}').text||'avanza un segundo',intent:mockIntent(JSON.parse(options.body||'{}').text||'avanza un segundo',{demos,selectedDemo:JSON.parse(options.body||'{}').selected_demo_id})}; }
+  else if(path.endsWith('/dispositivo'))data={conectado:new URLSearchParams(location.search).get('esp')!=='off'};
+  else if (path === '/api/control') {
     const body = options.body ? JSON.parse(options.body) : {};
-    if (method === 'GET') data = {ready:true,mock:true,vehicle:1};
+    if (method === 'GET') data = {ready:true,mock:true,vehicle:1,esp_connected:true};
     else {
       if (body.action === 'mover') {
         const command = commands.find(c => c.id_comando === body.id_comando);

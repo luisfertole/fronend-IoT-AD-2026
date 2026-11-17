@@ -11,7 +11,7 @@ export async function backendGateway(req, res, { env = process.env, fetcher = fe
   }
   const path = req.query?.path;
   if (typeof path !== 'string') return send(400, { detail: 'Ruta no válida' });
-  const read = /^\/$|^\/vehiculos$|^\/vehiculos\/[1-9]\d*(?:\/(?:comandos|demos|estado|historial))?$/;
+  const read = /^\/$|^\/vehiculos$|^\/vehiculos\/[1-9]\d*(?:\/(?:comandos|demos|estado|historial|dispositivo))?$/;
   const create = /^\/vehiculos(?:\/[1-9]\d*\/(?:comandos|demos))?$/;
   const remove = /^\/vehiculos\/[1-9]\d*(?:\/(?:comandos|demos)\/[1-9]\d*)?$/;
   const allowed = req.method === 'GET' ? read.test(path) : req.method === 'POST' ? create.test(path) : req.method === 'DELETE' ? remove.test(path) : false;

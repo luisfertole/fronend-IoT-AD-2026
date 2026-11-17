@@ -5,6 +5,7 @@ const control = (action, data = {}, options = {}) => request(CONTROL_ENDPOINT, {
   method: 'POST', local: true, body: { action, ...data }, ...options,
 });
 export const api = {
+  dispositivo: () => request('/vehiculos/' + V + '/dispositivo'),
   vehiculo: () => request(`/vehiculos/${V}`),
   comandos: () => request(`/vehiculos/${V}/comandos`),
   demos: () => request(`/vehiculos/${V}/demos`),

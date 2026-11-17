@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import { conexionESP } from '../src/shared/device-status.js';
+import { EstadoESP } from '../src/features/control/device.js';
+import { controlGateway } from '../server/control-gateway.mjs';
+test('ready=true no se interpreta como tarjeta conectada',()=>{assert.equal(conexionESP({ready:true}),null);assert.equal(conexionESP({conectado:true}),true);assert.equal(conexionESP({conectado:false}),false);});
+test('una respuesta REST antigua no pisa la desconexión WSS más reciente',async()=>{let resolve;const pending=new Promise(r=>resolve=r);const seen=[];const state=new EstadoESP(v=>seen.push(v),{dispositivo:()=>pending});const job=state.refresh();state.event({tipo:'DISPOSITIVO_DESCONECTADO'});resolve({conectado:true});await job;assert.deepEqual(seen,[false]);});
+test('un fallo de diagnóstico deja conexión sin verificar',async()=>{const state=new EstadoESP(()=>{},{dispositivo:async()=>{throw Error('sin red');}});await state.refresh();assert.equal(state.connected,null);});
+test('el diagnóstico distingue clave lista y ESP desconectada, sin enviar credenciales',async()=>{let headers;const res={setHeader(){},status(code){this.code=code;return this;},json(data){this.data=data;}};await controlGateway({method:'GET',headers:{}},res,{env:{IOT_API_KEY:'test-secret'},fetcher:async(url,options)=>{assert.ok(String(url).endsWith('/dispositivo'));headers=options.headers;return {ok:true,json:async()=>({conectado:false})};}});assert.equal(res.data.ready,true);assert.equal(res.data.esp_connected,false);assert.equal(headers['X-API-Key'],undefined);});

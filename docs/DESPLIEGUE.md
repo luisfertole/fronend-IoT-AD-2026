@@ -33,3 +33,11 @@ Las consultas REST se realizan a `/api/backend` dentro del mismo origen del pane
 El WebSocket sigue conectándose directamente a EC2. Su servidor puede validar el encabezado Origin por separado. Una respuesta `101 Switching Protocols` confirma que aceptó la conexión WebSocket; una lectura REST `200` desde Node no comprueba el CORS del navegador.
 
 Referencia: [CORS en MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS).
+
+## Activar voz y comprobar ESP
+
+Agrega OPENAI_API_KEY como Secret de Production en el mismo proyecto que sirve el dominio y vuelve a desplegar. OPENAI_TRANSCRIBE_MODEL=gpt-transcribe y OPENAI_INTENT_MODEL=gpt-4.1-mini son opcionales. No reutilices IOT_API_KEY como clave de OpenAI.
+
+Comprueba por separado `/api/control` (ready y esp_connected) y `/api/voice` (ready de OpenAI). La voz requiere que la ESP esté conectada. Si la tarjeta no se verifica, revisa `GET /vehiculos/1/dispositivo` en EC2. Conserva el permiso de micrófono bajo control del operador; el navegador lo solicitará cuando pulse Grabar voz.
+
+El control por voz reconoce el encendido de la placa, hasta seis acciones ordenadas y las demos activas del vehículo. Para pedir una demo por nombre o número, el servidor consulta `GET /vehiculos/{IOT_VEHICLE_ID}/demos` sin enviar credenciales IoT a OpenAI. Para «la demo seleccionada», elige primero una en el selector de la consola. Después de crear o eliminar demos, recarga Control. La grabación admite hasta 15 segundos.

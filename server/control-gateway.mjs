@@ -1,3 +1,5 @@
+import { conexionESP } from '../src/shared/device-status.js';
+
 const integer = (value, min, max = Number.MAX_SAFE_INTEGER) => Number.isSafeInteger(value) && value >= min && value <= max;
 
 // Únicamente operaciones de control. No permite rutas arbitrarias ni acciones administrativas.
@@ -7,7 +9,16 @@ export async function controlGateway(req, res, { env = process.env, fetcher = fe
   const vehicle = Number(env.IOT_VEHICLE_ID || 1);
   const configured = Boolean(env.IOT_API_KEY?.trim() && env.IOT_API_KEY.trim() !== 'tu_clave');
   if (!integer(vehicle, 1)) return send(503, { detail: 'IOT_VEHICLE_ID no es válido en el servidor' });
-  if (req.method === 'GET') return send(200, { ready: configured, vehicle });
+  if (req.method === 'GET') {
+    let esp_connected = null;
+    try {
+      const base = new URL(env.IOT_API_BASE || 'https://iot-vehiculos.duckdns.org');
+      if(!['https:','http:'].includes(base.protocol) || base.username || base.password)throw Error('Configuración no válida');
+      const response = await fetcher(new URL('/vehiculos/' + vehicle + '/dispositivo',base),{method:'GET',headers:{Accept:'application/json'},signal:AbortSignal.timeout(3000),redirect:'error'});
+      if(response.ok)esp_connected=conexionESP(await response.json());
+    } catch { /* La disponibilidad de la clave y de la tarjeta son independientes. */ }
+    return send(200, { ready: configured, vehicle, esp_connected });
+  }
   if (req.method !== 'POST') { res.setHeader('Allow', 'GET, POST'); return send(405, { detail: 'Método no permitido' }); }
   const origin = req.headers.origin;
   if (req.headers['sec-fetch-site'] === 'cross-site') return send(403, { detail: 'Origen no permitido' });

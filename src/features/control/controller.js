@@ -28,7 +28,9 @@ export class Controlador {
     }
   }
 
-  iniciar(nombre) {
+  iniciar(nombre, {durationMs=MOVE_MS, guard=()=>true, onStart=()=>{}} = {}) {
+    if(typeof guard!=='function'||typeof onStart!=='function')return Promise.resolve(false);
+    if (!PULSOS.has(nombre) && (!Number.isInteger(durationMs) || durationMs<50 || durationMs>MOVE_MS)) return Promise.resolve(false);
     if (!PULSOS.has(nombre) && this.deseado === nombre && (this.activo === nombre || this.pendientes)) return this.cola;
     this.unschedule(this.timer); this.timer = null;
     this.deseado = PULSOS.has(nombre) ? null : nombre;
@@ -37,27 +39,27 @@ export class Controlador {
     const job = this.cola.then(() => {
       // Descarta direcciones intermedias acumuladas; nunca ejecuta órdenes previas a DETENER.
       if (epoch !== this.paradas || (!PULSOS.has(nombre) && token !== this.intencion)) return false;
-      return this._iniciar(nombre, epoch, token);
+      return this._iniciar(nombre, epoch, token, durationMs, guard, onStart);
     }).finally(() => { this.pendientes--; });
     this.cola = job.catch(() => {});
     return job;
   }
-  async _iniciar(nombre, epoch, token) {
+  async _iniciar(nombre, epoch, token, durationMs, guard, onStart) {
     const cmd = this.catalogo.get(nombre), pulso = PULSOS.has(nombre);
     if (!cmd) { if (token === this.intencion) this.deseado = null; this.n('error', `${nombre} no está disponible en el catálogo`); return false; }
     // Cruzar el centro envía STOP. Conserva la última dirección hasta que ese STOP termine.
     const stopped = await this.paradaEnCurso;
-    if (epoch !== this.paradas || (!pulso && token !== this.intencion)) return false;
+    if (epoch !== this.paradas || (!pulso && token !== this.intencion) || !guard()) return false;
     if (!stopped) { this.deseado = null; this.n('error', 'No se confirmó la parada anterior. Vuelve a pulsar DETENER.'); return false; }
     if (this.demo || this.demoPendiente) { this.deseado = null; this.n('error', 'Detén la DEMO antes de usar los controles'); return false; }
     const functionKey = {ENCENDER_APAGAR:'encendido',SONIDO:'sonido',LUCES:'luces'}[nombre];
     const siguiente = functionKey ? !this.funciones[functionKey] : null;
     try {
       if (this.activo && (pulso || this.activo !== nombre)) { this.activo = null; await this.api.detener(); }
-      if (epoch !== this.paradas || (!pulso && token !== this.intencion)) return false;
+      if (epoch !== this.paradas || (!pulso && token !== this.intencion) || !guard()) return false;
       this.n('solicitado', nombre);
-      const started = this.now();
-      await this.api.mover(cmd.id_comando, pulso ? PULSE_MS : MOVE_MS);
+      const started = this.now(); onStart(started);
+      await this.api.mover(cmd.id_comando, pulso ? PULSE_MS : durationMs);
       if (epoch !== this.paradas) { await this.api.detener(); return false; }
       if (nombre === 'ENCENDER_APAGAR') {
         // Estado esperado según la orden aceptada. La confirmación física requiere telemetría.
@@ -69,7 +71,7 @@ export class Controlador {
         this.activo = nombre;
         if (token === this.intencion && this.deseado === nombre) {
           // Este temporizador solo limpia el estado local; nunca repite la orden.
-          const delay = Math.max(0, MOVE_MS - (this.now() - started));
+          const delay = Math.max(0, durationMs - (this.now() - started));
           this.timer = this.schedule(() => {
             if (epoch === this.paradas && token === this.intencion) {
               this.activo = null; this.deseado = null; this.timer = null;
@@ -102,10 +104,12 @@ export class Controlador {
     this.paradaEnCurso = Promise.all([previous, job]).then(([,ok]) => ok);
     return this.paradaEnCurso;
   }
-  async iniciarDemo(id) {
+  async iniciarDemo(id, {guard=()=>true} = {}) {
     if (!id || this.demo || this.demoPendiente || this.pendientes || this.detenciones || this.activo) {
       this.n('error', 'Selecciona una DEMO y detén los movimientos antes de ejecutarla'); return false;
     }
+    this.intencion++;
+    if(typeof guard!=='function'||!guard())return false;
     const epoch = this.paradas, version = this.demoVersion;
     this.demoPendiente = true; this.onDemo(true); this.n('solicitado', `DEMO ${id}`);
     try {
@@ -113,14 +117,18 @@ export class Controlador {
       if (epoch !== this.paradas) { await this.api.detener(); return false; }
       if (version === this.demoVersion) this.setDemo(true);
       this.n('aceptado', `DEMO ${id}`); return true;
-    } catch (error) { this.n('error', `DEMO: ${error.message}`); return false; }
+    } catch (error) {
+      this.n('error', `DEMO: ${error.message}`);
+      if(epoch===this.paradas){try{await this.api.detener();}catch{/* La consola conserva DETENER. */}}
+      return false;
+    }
     finally { this.demoPendiente = false; this.onDemo(this.demo); }
   }
   async cancelarDemo() {
     // Usa la misma barrera de cancelación que DETENER, también durante un inicio pendiente.
     this.paradas++; this.intencion++;
-    try { await this.api.cancelarDemo(); this.setDemo(false); this.n('aceptado', 'DEMO cancelada'); }
-    catch (error) { this.n('error', `Cancelar: ${error.message}`); }
+    try { await this.api.cancelarDemo(); this.setDemo(false); this.n('aceptado', 'DEMO cancelada'); return true; }
+    catch (error) { this.n('error', `Cancelar: ${error.message}`); return false; }
   }
   evento(message) {
     this.sincronizarFunciones(message.estado || message);
